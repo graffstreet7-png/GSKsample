@@ -1,0 +1,44 @@
+name: Construir APK GSKsamp
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - principal
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar proyecto
+        run: |
+          unzip -q NeVethDJ_V1_source.zip -d proyecto
+          mv proyecto/NeVethDJ/* proyecto/
+          mv proyecto/NeVethDJ/.[!.]* proyecto/ 2>/dev/null || true
+          rmdir proyecto/NeVethDJ
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
+
+      - name: Compilar APK
+        working-directory: proyecto
+        run: gradle assembleDebug --no-daemon
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GSKsamp-debug
+          path: proyecto/app/build/outputs/apk/debug/app-debug.apk
